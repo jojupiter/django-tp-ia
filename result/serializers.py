@@ -13,4 +13,4 @@ class ResultSerializer(serializers.ModelSerializer):
 
     def get_custom_field(self, obj):
         # Retourner les attributs souhaités dans le champ personnalisé
-        return [obj.metrique1, obj.metrique2]
+        return {'accuracy':obj.accuracy,'precision': obj.precision,'recall':obj.recall,'f1':obj.f1}
