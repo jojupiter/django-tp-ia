@@ -93,6 +93,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://sub.example.com",
     "http://localhost:4200",
     "http://127.0.0.1:4200",
+    "http://34.197.27.224:4200",
+    "ec2-34-197-27-224.compute-1.amazonaws.com",
 ]
 
 # Password validation
