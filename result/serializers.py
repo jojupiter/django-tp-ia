@@ -9,7 +9,7 @@ class ResultSerializer(serializers.ModelSerializer):
     custom_field = serializers.SerializerMethodField()
     class Meta:
         model = Result
-        fields = ['custom_field','algo', 'message']
+        fields = ['custom_field','algo', 'message','spam']
 
     def get_custom_field(self, obj):
         # Retourner les attributs souhaités dans le champ personnalisé

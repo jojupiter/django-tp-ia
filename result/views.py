@@ -10,12 +10,17 @@ from algo.models import Algo
 from result.serializers import ResultSerializer
 import joblib 
 from sklearn.feature_extraction.text import CountVectorizer
+import re
+import nltk
+from nltk.stem import PorterStemmer
+from nltk.corpus import stopwords
 
 
 class ResultAPIView(APIView):
  
     def post(self, request):
         text = request.data.get('text')
+        text = self.clean_text(text)
         print("text",text)
         results = self.detectspam(text)
         serializer1 = ResultSerializer(results[0])
@@ -25,38 +30,46 @@ class ResultAPIView(APIView):
     
 
     def detectspam(self, text):
-        model1 = joblib.load('nom_du_fichier.pkl')   # charger le modele
+        model1 = joblib.load('modele1.pkl')   # charger le modele
+        model2 = joblib.load('modele2.pkl')   # charger le modele
+        model3 = joblib.load('modele3.pkl')   # charger le modele
         X_test= self.preprocess(text)                    # pretraiter le mail
-        predictions = model1.predict(X_test)
-        print ('predictions', predictions)
+        prediction1 = model1.predict(X_test)
+        prediction2 = model2.predict(X_test)
+        prediction3 = model3.predict(X_test)
+        print ('prediction1', prediction1)
+        print ('prediction2', prediction2)
+        print ('prediction3', prediction3)
         message = Message.objects.create(message_text=text)
-        algo = Algo.objects.create(name="FORET")
+        algo1 = Algo.objects.create(name="Regression Logistique")
+        algo2 = Algo.objects.create(name="Forets Aleatoire")
+        algo3 = Algo.objects.create(name="SVM(Support Vector Machine)")
         result1 = Result.objects.create(
-            accuracy=0.5,
-            precision=0.8,
-            recall=0.3,
-            f1=0.2,
-            spam=True,
+            accuracy=0,
+            precision=0,
+            recall=0,
+            f1=0,
+            spam=self.getSpam(prediction1[0]),
             message=message,  # Remplacez "message_instance" par l'instance appropriée de la classe Message
-            algo=algo  # Remplacez "algo_instance" par l'instance appropriée de la classe Algo
+            algo=algo1  # Remplacez "algo_instance" par l'instance appropriée de la classe Algo
         )
         result2 = Result.objects.create(
-            accuracy=0.5,
-            precision=0.8,
-            recall=0.3,
-            f1=0.2,
-            spam=True,
+            accuracy=0,
+            precision=0,
+            recall=0,
+            f1=0,
+            spam=self.getSpam(prediction2[0]),
             message=message,  # Remplacez "message_instance" par l'instance appropriée de la classe Message
-            algo=algo  # Remplacez "algo_instance" par l'instance appropriée de la classe Algo
+            algo=algo2  # Remplacez "algo_instance" par l'instance appropriée de la classe Algo
         )
         result3 = Result.objects.create(
-            accuracy=0.5,
-            precision=0.8,
-            recall=0.3,
-            f1=0.2,
-            spam=True,
+            accuracy=0,
+            precision=0,
+            recall=0,
+            f1=0,
+            spam=self.getSpam(prediction3[0]),
             message=message,  # Remplacez "message_instance" par l'instance appropriée de la classe Message
-            algo=algo  # Remplacez "algo_instance" par l'instance appropriée de la classe Algo
+            algo=algo3  # Remplacez "algo_instance" par l'instance appropriée de la classe Algo
         )
         results =[result1,result2,result3]
         return results
@@ -67,10 +80,31 @@ class ResultAPIView(APIView):
         vocab = joblib.load('vectorizer_vocab.pkl')
         # Charger les paramètres du vectoriseur
         vectorizer_params = joblib.load('vectorizer_params.pkl')
+        # Charger le modele Feature Selection
+        svd = joblib.load('selection_features_model.pkl')
         # Effectuer la vectorisation 
         vectorizer.set_params(**vectorizer_params)
         vectorizer.vocabulary_=vocab
         X_test = vectorizer.transform([text])
         print("X shape",X_test.shape)
         print("X test",X_test)
-        return X_test
+        # Feature Selection
+        X_test_reduced=svd.transform(X_test)
+        return X_test_reduced
+
+    def clean_text(self,text):
+        ps = PorterStemmer()
+        nltk.download('stopwords')
+        stop_words = set(stopwords.words('english'))
+        text = re.sub('[^a-zA-Z]', ' ', text)
+        text = text.lower()
+        text = text.split()
+        text = [ps.stem(word) for word in text if not word in stop_words]  # use stop_words instead of stopwords
+        text = ' '.join(text)
+        return text
+
+    def getSpam(self, prediction):
+        if(prediction==0) :
+            return False
+        else :
+            return True
