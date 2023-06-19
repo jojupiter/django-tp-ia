@@ -3,7 +3,7 @@ from django.shortcuts import render
 # Create your views here.
 from rest_framework.views import APIView
 from rest_framework.response import Response
- 
+from google.cloud import translate_v2 as translate
 from result.models import Result
 from message.models import Message
 from algo.models import Algo
@@ -20,6 +20,7 @@ class ResultAPIView(APIView):
  
     def post(self, request):
         text = request.data.get('text')
+        text= self.translate_text(text)
         text = self.clean_text(text)
         print("text",text)
         results = self.detectspam(text)
@@ -108,3 +109,19 @@ class ResultAPIView(APIView):
             return False
         else :
             return True
+
+    def translate_text(target: str, text: str) -> dict:
+        translate_client = translate.Client()
+
+        if isinstance(text, bytes):
+            text = text.decode("utf-8")
+
+        # Text can also be a sequence of strings, in which case this method
+        # will return a sequence of results for each text.
+        result = translate_client.translate(text, target_language=target)
+
+        print("Text: {}".format(result["input"]))
+        print("Translation: {}".format(result["translatedText"]))
+        print("Detected source language: {}".format(result["detectedSourceLanguage"]))
+
+        return result
