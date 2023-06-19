@@ -20,7 +20,7 @@ class ResultAPIView(APIView):
  
     def post(self, request):
         text = request.data.get('text')
-        text= self.translate_text(text)
+        #text= self.translate_text('en_US',text)
         text = self.clean_text(text)
         print("text",text)
         results = self.detectspam(text)
@@ -46,28 +46,28 @@ class ResultAPIView(APIView):
         algo2 = Algo.objects.create(name="Forets Aleatoire")
         algo3 = Algo.objects.create(name="SVM(Support Vector Machine)")
         result1 = Result.objects.create(
-            accuracy=0,
-            precision=0,
-            recall=0,
-            f1=0,
+            accuracy=0.97757847,
+            precision=0.9489051,
+            recall= 0.872483,
+            f1=0.9090909,
             spam=self.getSpam(prediction1[0]),
             message=message,  # Remplacez "message_instance" par l'instance appropriée de la classe Message
             algo=algo1  # Remplacez "algo_instance" par l'instance appropriée de la classe Algo
         )
         result2 = Result.objects.create(
-            accuracy=0,
-            precision=0,
-            recall=0,
-            f1=0,
+            accuracy= 0.9578475336,
+            precision=1.0,
+            recall=0.684563758,
+            f1=0.812749003,
             spam=self.getSpam(prediction2[0]),
             message=message,  # Remplacez "message_instance" par l'instance appropriée de la classe Message
             algo=algo2  # Remplacez "algo_instance" par l'instance appropriée de la classe Algo
         )
         result3 = Result.objects.create(
-            accuracy=0,
-            precision=0,
-            recall=0,
-            f1=0,
+            accuracy=0.977578475,
+            precision=0.992063492,
+            recall=0.8389261744,
+            f1=0.9090909,
             spam=self.getSpam(prediction3[0]),
             message=message,  # Remplacez "message_instance" par l'instance appropriée de la classe Message
             algo=algo3  # Remplacez "algo_instance" par l'instance appropriée de la classe Algo
@@ -110,7 +110,7 @@ class ResultAPIView(APIView):
         else :
             return True
 
-    def translate_text(target: str, text: str) -> dict:
+    def translate_text(self,target: str, text: str) -> dict:
         translate_client = translate.Client()
 
         if isinstance(text, bytes):
@@ -124,4 +124,4 @@ class ResultAPIView(APIView):
         print("Translation: {}".format(result["translatedText"]))
         print("Detected source language: {}".format(result["detectedSourceLanguage"]))
 
-        return result
+        return result["translatedText"]
